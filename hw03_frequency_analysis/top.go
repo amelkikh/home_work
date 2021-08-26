@@ -21,49 +21,36 @@ func Top10(str string) []string {
 		if _, ok := excludes[match]; ok {
 			continue
 		}
-		if _, ok := m[match]; ok {
-			m[match]++
-			continue
-		} else {
-			m[match] = 1
-		}
+		m[match]++
 	}
 
 	if len(m) == 0 {
 		return []string{}
 	}
 
-	freqList := make(WordFrequencies, len(m))
-	i := 0
+	freqList := make(WordFrequencies, 0, len(m))
 	for word, count := range m {
-		freqList[i] = Pair{
+		freqList = append(freqList, Pair{
 			Word:  word,
 			Count: count,
+		})
+	}
+	sort.Slice(freqList, func(i, j int) bool {
+		if a, b := freqList[i].Count, freqList[j].Count; a != b {
+			return a > b
 		}
-		i++
-	}
-	sort.Sort(sort.Reverse(freqList))
+		return freqList[i].Word < freqList[j].Word
+	})
 
-	// Split and sort alphabetically each equal chunk of counters
-	currentCounts := 0
-	result := make([]string, 0)
-	subSlice := make([]string, 0)
-	for _, pair := range freqList {
-		if pair.Count != currentCounts {
-			currentCounts = pair.Count
-			if len(subSlice) > 0 {
-				sort.Strings(subSlice)
-				result = append(result, subSlice...)
-				subSlice = make([]string, 0)
-			}
-		}
-		subSlice = append(subSlice, pair.Word)
-	}
-	sort.Strings(subSlice)
-	result = append(result, subSlice...)
 
-	if wordsLimit > len(result) {
-		wordsLimit = len(result)
+	if wordsLimit > len(freqList) {
+		wordsLimit = len(freqList)
 	}
-	return result[:wordsLimit]
+
+	result := make([]string, 0, wordsLimit)
+	for i := 0; i < wordsLimit; i++ {
+		result = append(result, freqList[i].Word)
+	}
+
+	return result
 }
