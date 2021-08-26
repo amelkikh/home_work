@@ -42,7 +42,6 @@ func Top10(str string) []string {
 		return freqList[i].Word < freqList[j].Word
 	})
 
-
 	if wordsLimit > len(freqList) {
 		wordsLimit = len(freqList)
 	}
