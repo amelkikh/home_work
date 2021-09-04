@@ -24,9 +24,9 @@ func Run(tasks []Task, workerCount, errorLimit int) error {
 
 	var wg sync.WaitGroup
 	var errCnt int32
-
 	taskCh := make(chan Task)
 	wg.Add(workerCount)
+
 	for i := 0; i < workerCount; i++ {
 		go func() {
 			defer wg.Done()
