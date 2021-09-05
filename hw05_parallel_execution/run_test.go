@@ -90,7 +90,6 @@ func TestRun(t *testing.T) {
 		require.NoError(t, Run(tasks, workersCount, 0))
 		require.Equal(t, runTasksCount, int32(tasksCount), "not all tasks were completed")
 	})
-
 }
 
 func TestConcurrency(t *testing.T) {
