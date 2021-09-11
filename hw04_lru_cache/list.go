@@ -57,7 +57,12 @@ func (l *list) PushBack(v interface{}) *ListItem {
 		Prev:  l.tail,
 		list:  l,
 	}
-	l.tail.Next = item
+	if l.head == nil {
+		l.head = item
+	}
+	if l.tail != nil {
+		l.tail.Next = item
+	}
 	l.tail = item
 	l.count++
 
