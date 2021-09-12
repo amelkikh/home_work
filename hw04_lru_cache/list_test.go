@@ -9,10 +9,37 @@ import (
 func TestList(t *testing.T) {
 	t.Run("empty list", func(t *testing.T) {
 		l := NewList()
-
 		require.Equal(t, 0, l.Len())
 		require.Nil(t, l.Front())
 		require.Nil(t, l.Back())
+	})
+
+	t.Run("remove item from empty list", func(t *testing.T) {
+		l := NewList()
+		require.Equal(t, 0, l.Len())
+		l.Remove(l.Front())
+		require.Equal(t, 0, l.Len())
+	})
+
+	t.Run("move to front deleted item", func(t *testing.T) {
+		l := NewList()
+		item1 := l.PushFront(10)
+		item2 := l.PushBack(20)
+		require.Equal(t, 2, l.Len())
+		l.Remove(item2)
+		l.MoveToFront(item2)
+		require.Equal(t, 1, l.Len())
+		require.Equal(t, item1.Value, l.Front().Value)
+	})
+
+	t.Run("remove not existing item", func(t *testing.T) {
+		l := NewList()
+		l.PushFront(10)
+		item := l.PushBack(20)
+		l.Remove(item)
+		l.Remove(item)
+		require.Equal(t, 1, l.Len())
+		require.Equal(t, 10, l.Front().Value)
 	})
 
 	t.Run("complex", func(t *testing.T) {
