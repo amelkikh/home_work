@@ -64,10 +64,11 @@ func (c *CopyDataSuite) TestCopyPartFile() {
 	c.Require().NoError(err)
 
 	f2, err := os.Open(tmpName)
+	c.Require().NoError(err)
 	data2, err := ioutil.ReadAll(f2)
 	c.Require().NoError(err)
 
-	c.Require().True(bytes.Compare(c.b[:10], data2) == 0)
+	c.Require().True(bytes.Equal(c.b[:10], data2))
 
 	err = os.Remove(tmpName)
 	c.Require().NoError(err)
@@ -79,10 +80,11 @@ func (c *CopyDataSuite) TestCopyFileOffset() {
 	c.Require().NoError(err)
 
 	f2, err := os.Open(tmpName)
+	c.Require().NoError(err)
 	data2, err := ioutil.ReadAll(f2)
 	c.Require().NoError(err)
 
-	c.Require().True(bytes.Compare(c.b[10:20], data2) == 0)
+	c.Require().True(bytes.Equal(c.b[10:20], data2))
 
 	err = os.Remove(tmpName)
 	c.Require().NoError(err)
@@ -94,10 +96,11 @@ func (c *CopyDataSuite) TestCopyFullFile() {
 	c.Require().NoError(err)
 
 	f2, err := os.Open(tmpName)
+	c.Require().NoError(err)
 	data2, err := ioutil.ReadAll(f2)
 	c.Require().NoError(err)
 
-	c.Require().True(bytes.Compare(c.b, data2) == 0)
+	c.Require().True(bytes.Equal(c.b, data2))
 
 	err = os.Remove(tmpName)
 	c.Require().NoError(err)
