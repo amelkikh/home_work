@@ -5,7 +5,6 @@ import (
 	"errors"
 	"io"
 	"os"
-	"time"
 
 	"github.com/cheggaaa/pb/v3"
 )
@@ -15,6 +14,22 @@ var (
 	ErrOffsetExceedsFileSize = errors.New("offset exceeds file size")
 	ErrNegativeValue         = errors.New("negative value is unacceptable")
 )
+
+type ProgressReader struct {
+	io.Reader
+
+	total int64
+}
+
+func (pt *ProgressReader) Read(p []byte) (int, error) {
+	n, err := pt.Reader.Read(p)
+	if err != nil {
+		return 0, err
+	}
+	pt.total += int64(n)
+
+	return n, nil
+}
 
 func Copy(fromPath, toPath string, offset, limit int64) error {
 	info, err := os.Stat(fromPath)
@@ -46,48 +61,19 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	}
 	defer fTo.Close()
 
-	r := bufio.NewReader(f)
-	if offset > 0 {
-		_, err = r.Discard(int(offset))
-		if err != nil {
-			return err
-		}
+	_, err = f.Seek(offset, 0)
+	if err != nil {
+		return err
 	}
-	w := bufio.NewWriter(fTo)
-	buf := make([]byte, 1024)
-
-	bar := pb.StartNew(int(limit))
-	bar.Set(pb.Bytes, true)
+	bar := pb.New64(limit)
+	bar.Start()
 	defer bar.Finish()
 
-	var n int64 = 0
-	for n <= limit {
-		nn, err := r.Read(buf)
-		if err != nil && !errors.Is(err, io.EOF) {
-			return err
-		}
+	r := bar.NewProxyReader(f)
+	w := bufio.NewWriter(fTo)
 
-		if nn == 0 {
-			break
-		}
-
-		if n+int64(nn) > limit {
-			nn = int(limit - n)
-			n = limit
-		} else {
-			n += int64(nn)
-		}
-
-		if _, err := w.Write(buf[:nn]); err != nil {
-			return err
-		}
-
-		bar.Add(nn)
-		// Just for testing purposes to visualize progress
-		time.Sleep(time.Millisecond * 300)
-	}
-
-	if err = w.Flush(); err != nil {
+	_, err = io.CopyN(w, r, limit)
+	if err != nil && !errors.Is(err, io.EOF) {
 		return err
 	}
 
