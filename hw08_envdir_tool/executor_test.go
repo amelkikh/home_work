@@ -41,7 +41,6 @@ func TestRunCmd(t *testing.T) {
 
 	err = envCmd.Start()
 	require.NoError(t, err)
-
 	err = envCmd.Wait()
 	require.NoError(t, err)
 
