@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"path"
 	"strings"
 )
 
@@ -37,14 +38,11 @@ func ReadDir(dir string) (Environment, error) {
 
 	envs := make(Environment, len(files))
 	for _, f := range files {
-		if f.IsDir() {
+		if f.IsDir() || strings.Contains(f.Name(), "=") {
 			continue
 		}
-		if strings.Contains(f.Name(), "=") {
-			continue
-		}
-		fPath := strings.Join([]string{dir, f.Name()}, string(os.PathSeparator))
 
+		fPath := path.Join(dir, f.Name())
 		if env, err := parseFile(fPath); err == nil {
 			envs[f.Name()] = env
 		}
