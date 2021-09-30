@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-// go test -v -bench=BenchmarkGetDomainStat -benchmem stats_benchmark_test.go -count=5
+// go test -v -bench=BenchmarkGetDomainStat -benchmem stats_benchmark_test.go -count=5 .
 func BenchmarkGetDomainStat(b *testing.B) {
 	b.StopTimer()
 
