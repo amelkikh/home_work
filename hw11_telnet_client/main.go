@@ -1,6 +1,65 @@
 package main
 
+import (
+	"context"
+	"flag"
+	"fmt"
+	"os"
+	"os/signal"
+	"strconv"
+	"syscall"
+	"time"
+)
+
 func main() {
-	// Place your code here,
-	// P.S. Do not rush to throw context down, think think if it is useful with blocking operation?
+	var timeout time.Duration
+	flag.DurationVar(&timeout, "timeout", time.Second*10, "Connect timeout duration, eg. --timeout=10s")
+	flag.Parse()
+	args := flag.Args()
+	if len(args) < 2 {
+		fmt.Println("Please provide string with server and port arguments, eg. 127.0.0.1 8080")
+		return
+	}
+
+	if _, err := strconv.Atoi(args[1]); err != nil {
+		fmt.Println("Invalid port number:", args[1])
+		return
+	}
+
+	addr := args[0] + ":" + args[1]
+	client := NewTelnetClient(addr, timeout, os.Stdin, os.Stdout)
+	if err := client.Connect(); err != nil {
+		fmt.Println("Connect error:", addr, err)
+		return
+	}
+
+	defer client.Close()
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGINT)
+	defer stop()
+	go func() {
+		for {
+			err := client.Receive()
+			switch err { //nolint:errorlint
+			case nil:
+			default:
+				stop()
+				return
+			}
+		}
+	}()
+
+	go func() {
+		for {
+			err := client.Send()
+			switch err { //nolint:errorlint
+			case nil:
+			default:
+				stop()
+				return
+			}
+		}
+	}()
+
+	<-ctx.Done()
 }
