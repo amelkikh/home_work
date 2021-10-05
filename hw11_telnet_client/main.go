@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"net"
 	"os"
 	"os/signal"
 	"strconv"
@@ -12,8 +13,7 @@ import (
 )
 
 func main() {
-	var timeout time.Duration
-	flag.DurationVar(&timeout, "timeout", time.Second*10, "Connect timeout duration, eg. --timeout=10s")
+	timeout := flag.Duration("timeout", time.Second*10, "Connect timeout duration, eg. --timeout=10s")
 	flag.Parse()
 	args := flag.Args()
 	if len(args) < 2 {
@@ -26,8 +26,8 @@ func main() {
 		return
 	}
 
-	addr := args[0] + ":" + args[1]
-	client := NewTelnetClient(addr, timeout, os.Stdin, os.Stdout)
+	addr := net.JoinHostPort(args[0], args[1])
+	client := NewTelnetClient(addr, *timeout, os.Stdin, os.Stdout)
 	if err := client.Connect(); err != nil {
 		fmt.Println("Connect error:", addr, err)
 		return
@@ -35,7 +35,7 @@ func main() {
 
 	defer client.Close()
 
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGINT)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 	go func() {
 		for {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"net"
 	"time"
@@ -33,38 +34,33 @@ type client struct {
 func (c *client) Connect() error {
 	conn, err := net.DialTimeout("tcp", c.address, c.timeout)
 	if err != nil {
-		return err
+		return fmt.Errorf("connect: %w", err)
 	}
 	c.conn = conn
 	return nil
 }
 
 func (c *client) Close() error {
-	return c.conn.Close()
+	if c.conn != nil {
+		if err := c.conn.Close(); err != nil {
+			return fmt.Errorf("close: %w", err)
+		}
+	}
+	return nil
 }
 
 func (c *client) Send() error {
-	buff := make([]byte, 1024)
-	n, err := c.in.Read(buff)
+	_, err := io.Copy(c.conn, c.in)
 	if err != nil {
-		return err
-	}
-	_, err = c.conn.Write(buff[0:n])
-	if err != nil {
-		return err
+		return fmt.Errorf("send: %w", err)
 	}
 	return nil
 }
 
 func (c *client) Receive() error {
-	buff := make([]byte, 1024)
-	n, err := c.conn.Read(buff)
+	_, err := io.Copy(c.out, c.conn)
 	if err != nil {
-		return err
-	}
-	_, err = c.out.Write(buff[0:n])
-	if err != nil {
-		return err
+		return fmt.Errorf("receive: %w", err)
 	}
 	return nil
 }
