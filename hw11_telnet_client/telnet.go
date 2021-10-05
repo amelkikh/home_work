@@ -50,16 +50,14 @@ func (c *client) Close() error {
 }
 
 func (c *client) Send() error {
-	_, err := io.Copy(c.conn, c.in)
-	if err != nil {
+	if _, err := io.Copy(c.conn, c.in); err != nil {
 		return fmt.Errorf("send: %w", err)
 	}
 	return nil
 }
 
 func (c *client) Receive() error {
-	_, err := io.Copy(c.out, c.conn)
-	if err != nil {
+	if _, err := io.Copy(c.out, c.conn); err != nil {
 		return fmt.Errorf("receive: %w", err)
 	}
 	return nil
