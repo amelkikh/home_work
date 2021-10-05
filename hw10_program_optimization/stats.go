@@ -3,7 +3,6 @@ package hw10programoptimization
 import (
 	"bufio"
 	"io"
-	"regexp"
 	"strings"
 
 	jsoniter "github.com/json-iterator/go"
@@ -25,15 +24,16 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 	result := make(DomainStat)
-	re := regexp.MustCompile("\\." + domain)
 	scanner := bufio.NewScanner(r)
 	scanner.Split(bufio.ScanLines)
+	suffix := "." + domain
+	var user User
 	for scanner.Scan() {
-		var user User
+		user.Email = ""
 		if err := json.Unmarshal(scanner.Bytes(), &user); err != nil {
 			continue
 		}
-		if re.MatchString(user.Email) {
+		if strings.HasSuffix(user.Email, suffix) {
 			result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])]++
 		}
 	}
