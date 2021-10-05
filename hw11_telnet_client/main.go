@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"os/signal"
@@ -29,8 +30,7 @@ func main() {
 	addr := net.JoinHostPort(args[0], args[1])
 	client := NewTelnetClient(addr, *timeout, os.Stdin, os.Stdout)
 	if err := client.Connect(); err != nil {
-		fmt.Println("Connect error:", addr, err)
-		return
+		log.Fatal(err)
 	}
 
 	defer client.Close()
@@ -38,27 +38,13 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 	go func() {
-		for {
-			err := client.Receive()
-			switch err { //nolint:errorlint
-			case nil:
-			default:
-				stop()
-				return
-			}
-		}
+		_ = client.Receive()
+		stop()
 	}()
 
 	go func() {
-		for {
-			err := client.Send()
-			switch err { //nolint:errorlint
-			case nil:
-			default:
-				stop()
-				return
-			}
-		}
+		_ = client.Send()
+		stop()
 	}()
 
 	<-ctx.Done()
