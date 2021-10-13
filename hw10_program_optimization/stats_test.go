@@ -25,6 +25,12 @@ func TestGetDomainStat(t *testing.T) {
 		}, result)
 	})
 
+	t.Run("corrupted JSON", func(t *testing.T) {
+		result, err := GetDomainStat(bytes.NewBufferString(data[:len(data)-1]), "com")
+		require.NotNil(t, err)
+		require.Equal(t, *new(DomainStat), result)
+	})
+
 	t.Run("find 'gov'", func(t *testing.T) {
 		result, err := GetDomainStat(bytes.NewBufferString(data), "gov")
 		require.NoError(t, err)
