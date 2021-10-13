@@ -28,6 +28,7 @@ func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 	suffix := "." + domain
 	var user User
 	for scanner.Scan() {
+		user.Email = ""
 		if err := json.Unmarshal(scanner.Bytes(), &user); err != nil {
 			return nil, err
 		}

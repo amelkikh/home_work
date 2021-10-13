@@ -16,6 +16,20 @@ func TestGetDomainStat(t *testing.T) {
 {"Id":4,"Name":"Gregory Reid","Username":"tButler","Email":"5Moore@Teklist.net","Phone":"520-04-16","Password":"r639qLNu","Address":"Sunfield Park 20"}
 {"Id":5,"Name":"Janice Rose","Username":"KeithHart","Email":"nulla@Linktype.com","Phone":"146-91-01","Password":"acSBF5","Address":"Russell Trail 61"}`
 
+	data2 := `{"Id":1, "Email":"nulla@Linktype.com"}
+{"Id":2}
+{"Id":3}
+{"Id":4}
+{"Id":5}`
+
+	t.Run("not valid JSON struct", func(t *testing.T) {
+		result, err := GetDomainStat(bytes.NewBufferString(data2), "com")
+		require.NoError(t, err)
+		require.Equal(t, DomainStat{
+			"linktype.com": 1,
+		}, result)
+	})
+
 	t.Run("find 'com'", func(t *testing.T) {
 		result, err := GetDomainStat(bytes.NewBufferString(data), "com")
 		require.NoError(t, err)
