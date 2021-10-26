@@ -1,7 +1,6 @@
 package hw09structvalidator
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -18,7 +17,6 @@ type (
 		Email  string   `validate:"regexp:^\\w+@\\w+\\.\\w+$"`
 		Role   UserRole `validate:"in:admin,stuff"`
 		Phones []string `validate:"len:11"`
-		meta   json.RawMessage
 	}
 
 	AppInvalidLenValue struct {

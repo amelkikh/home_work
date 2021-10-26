@@ -62,7 +62,7 @@ func (v *validator) validateSlice(field string, tags []string, val reflect.Value
 			}
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			for j := 0; j < val.Len(); j++ {
-				err := v.validateInt(field, tags, val.Index(j).Int())
+				err := v.validateUInt(field, tags, uint64(val.Index(j).Int()))
 				if err != nil {
 					return err
 				}
@@ -114,53 +114,18 @@ func (v *validator) validateUInt(field string, tags []string, i uint64) error {
 	return nil
 }
 
-func (v *validator) validateInt(field string, tags []string, i int64) error {
-	switch tags[0] {
-	case "min":
-		val, err := strconv.ParseInt(tags[1], 10, 64)
-		if err != nil {
-			return fmt.Errorf("value %q: %w", tags[1], ErrParseValidator)
-		}
-		if i < val {
-			v.errors = append(v.errors, ValidationError{Field: field, Err: ErrNumberMin})
-		}
-	case "max":
-		val, err := strconv.ParseInt(tags[1], 10, 64)
-		if err != nil {
-			return fmt.Errorf("value %q: %w", tags[1], ErrParseValidator)
-		}
-		if i > val {
-			v.errors = append(v.errors, ValidationError{Field: field, Err: ErrNumberMax})
-		}
-	case "in":
-		in := strings.Split(tags[1], ",")
-		m := make(map[int64]struct{})
-		for _, vv := range in {
-			val, err := strconv.ParseInt(vv, 10, 64)
-			if err != nil {
-				return fmt.Errorf("value %q: %w", tags[1], ErrParseValidator)
-			}
-			m[val] = struct{}{}
-		}
-		if _, ok := m[i]; !ok {
-			v.errors = append(v.errors, ValidationError{Field: field, Err: ErrValueNotInList})
-		}
-	}
-	return nil
-}
-
 func Validate(v interface{}) error {
 	val := &validator{}
 	return val.Validate(v)
 }
 
-func (v *validator) Validate(vv interface{}) error {
-	refValue := reflect.ValueOf(vv)
+func (v *validator) Validate(vv interface{}) error { // nolint: gocognit
 	refType := reflect.TypeOf(vv)
-
 	if refType.Kind() != reflect.Struct {
-		return fmt.Errorf("%w: value %s", ErrInvalidValueType, refType.Kind().String())
+		return fmt.Errorf("value %s: %w", refType.Kind().String(), ErrInvalidValueType)
 	}
+
+	refValue := reflect.ValueOf(vv)
 	refValueType := refValue.Type()
 	for i := 0; i < refValue.NumField(); i++ {
 		refStructField := refValueType.Field(i)
@@ -196,7 +161,7 @@ func (v *validator) Validate(vv interface{}) error {
 					return err
 				}
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-				if err := v.validateInt(fName, tags, refValue.Field(i).Int()); err != nil {
+				if err := v.validateUInt(fName, tags, uint64(refValue.Field(i).Int())); err != nil {
 					return err
 				}
 			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
