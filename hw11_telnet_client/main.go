@@ -38,13 +38,19 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 	go func() {
-		_ = client.Receive()
-		stop()
+		defer stop()
+		err := client.Receive()
+		if err != nil {
+			log.Println(fmt.Errorf("receive: %w", err))
+		}
 	}()
 
 	go func() {
-		_ = client.Send()
-		stop()
+		defer stop()
+		err := client.Send()
+		if err != nil {
+			log.Println(fmt.Errorf("send: %w", err))
+		}
 	}()
 
 	<-ctx.Done()
